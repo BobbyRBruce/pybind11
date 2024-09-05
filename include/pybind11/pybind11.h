@@ -1380,7 +1380,23 @@ protected:
             } else {
                 internals.registered_types_cpp[tindex] = tinfo;
             }
+#if defined(__GNUG__) && __GNUC__ == 12
+            // The following `GCC diagnostic` pragmas are used to suppress
+            // warnings  about out-of-bounds array access in the following
+            // code. The warnings are false positives. This bug affects GCC 12.
+            //
+            // This is discussed here:
+            // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=115824.
+            //
+            // The following fix is based on the the suggested workaround:
+            PYBIND11_WARNING_PUSH
+            PYBIND11_WARNING_DISABLE_GCC("-Wdarray-bounds")
+            PYBIND11_WARNING_DISABLE_GCC("-Wstringop-overread")
+#endif
             internals.registered_types_py[(PyTypeObject *) m_ptr] = {tinfo};
+#if defined(__GNUG__) && __GNUC__ == 12
+            PYBIND11_WARNING_POP
+#endif
         });
 
         if (rec.bases.size() > 1 || rec.multiple_inheritance) {
